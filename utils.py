@@ -13,6 +13,27 @@ from models import (
 
 http_bearer = HTTPBearer()
 
+def build_url(
+    host: str = None,
+    path: str = None,
+    port: str = None,
+    endpoint: str = None,
+    param: str = None
+):
+    url = "http://"
+    if host is not None:
+        url += host
+    # if path is not None:
+    #     url += '/' + path 
+    if port is not None:
+        url += ':' + port
+    if endpoint is not None:
+        url += '/' + endpoint
+    if param is not None:
+        url += '/' + param
+    print(url)
+    return url
+
 def check_response(
     response
 ):
@@ -65,7 +86,12 @@ def get_current_token_payload(
 async def process_login(
     auth_data: OAuth2PasswordRequestForm
 ):
-    url = "http://" + settings.auth_url.host + '/' + settings.auth_url.path + '/' + settings.auth_url.login_endpoint
+    url = build_url(
+        host = settings.auth_url.host,
+        path = settings.auth_url.path,
+        port = settings.auth_url.port,
+        endpoint = settings.auth_url.login_endpoint
+    )
 
     async with httpx.AsyncClient() as client:
         response = await client.post(
@@ -83,7 +109,12 @@ async def process_login(
 async def create_new_auth (
         new_auth: AuthCreate
 ):
-    url = "http://" + settings.auth_url.host + '/' + settings.auth_url.path + '/' + settings.auth_url.register_endpoint
+    url = build_url(
+        host = settings.auth_url.host,
+        path = settings.auth_url.path,
+        port = settings.auth_url.port,
+        endpoint = settings.auth_url.register_endpoint 
+    )
 
     async with httpx.AsyncClient() as client:
         response = await client.post(
@@ -96,7 +127,12 @@ async def create_new_auth (
 async def create_new_profile(
     new_profile: ProfileCreate
 ):
-    url = "http://" + settings.prof_url.host + '/' + settings.prof_url.path + '/' + settings.prof_url.register_endpoint
+    url = build_url(
+        host = settings.prof_url.host,
+        path = settings.prof_url.path,
+        port = settings.prof_url.port,
+        endpoint = settings.prof_url.register_endpoint
+    )
 
     async with httpx.AsyncClient() as client:
         response = await client.post(
@@ -125,7 +161,13 @@ async def get_profile(
     # Если не совпадет - изнутри шибанет исключением 
     check_token_uname(req_uname, token_payload)
 
-    url = "http://" + settings.prof_url.host + '/' + settings.prof_url.path + '/' + settings.prof_url.register_endpoint + '/' + req_uname
+    url = build_url(
+        host = settings.prof_url.host,
+        path = settings.prof_url.path,
+        port = settings.prof_url.port,
+        endpoint = settings.prof_url.get_endpoint,
+        param = req_uname
+    )
 
     async with httpx.AsyncClient() as client:
         response = await client.get(
@@ -144,8 +186,14 @@ async def update_profile(
     # Если не совпадет - изнутри шибанет исключением 
     check_token_uname(req_uname, token_payload)
 
-    url = "http://" + settings.prof_url.host + '/' + settings.prof_url.path + '/' + settings.prof_url.register_endpoint + '/' + req_uname
-    
+    url = build_url(
+        host = settings.prof_url.host,
+        path = settings.prof_url.path,
+        port = settings.prof_url.port,
+        endpoint = settings.prof_url.upd_endpoint,
+        param = req_uname
+    )
+
     async with httpx.AsyncClient() as client:
         response = await client.put(
             url,
