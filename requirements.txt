@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+httpx
+pydantic
+pydantic_settings
+prometheus_fastapi_instrumentator
+email-validator
+pyjwt[crypto]
+python-multipart

@@ -1,5 +1,4 @@
 from fastapi import Depends, FastAPI, HTTPException, status
-from sqlalchemy.exc import IntegrityError
 from prometheus_fastapi_instrumentator import Instrumentator
 from models import (
     TokenInfo, 
@@ -11,8 +10,8 @@ from models import (
 )
 from fastapi.security import OAuth2PasswordRequestForm
 import utils
-import httpx
-import uvicorn
+
+# import uvicorn
 
 app = FastAPI(title="Client API Gateway", version="1.0.0")
 
@@ -86,8 +85,5 @@ async def create_new_user (
 
     return profile
 
-
-    
-
-if __name__ == "__main__":
-    uvicorn.run("main:app", reload=True)
+# if __name__ == "__main__":
+#     uvicorn.run("main:app", reload=True)
