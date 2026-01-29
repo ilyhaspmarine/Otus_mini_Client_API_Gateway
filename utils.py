@@ -150,8 +150,8 @@ def check_token_uname(
 ):
     if uname != token_payload.get("sub"):
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid token error",
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Access forbidden",
         )
     
 async def get_profile(
