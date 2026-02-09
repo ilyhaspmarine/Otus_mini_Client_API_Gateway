@@ -262,7 +262,7 @@ class BillingService(Service):
 
         new_transaction = TransactionCreate(
             username = username,
-            amount = amount
+            amount = str(amount)
         )
 
         async with httpx.AsyncClient() as client:

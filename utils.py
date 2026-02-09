@@ -6,9 +6,12 @@ import jwt
 from models import (
     UserCreate,
     ProfileReturn,
-    ProfileUpdate
+    ProfileUpdate,
+    WalletReturn,
+    TransactionCreate,
+    TransactionReturn
 )
-from services import AuthService, ProfileService
+from services import AuthService, ProfileService, BillingService
 from saga import SagaRegister
 
 http_bearer = HTTPBearer()
@@ -126,3 +129,42 @@ async def process_register(
     result = await saga.execute_saga(reg_data)
 
     return result
+
+
+async def get_wallet(
+    req_uname: str,
+    token_payload: dict
+):
+    # Если не совпадет - изнутри шибанет исключением 
+    check_token_uname(req_uname, token_payload)
+
+    billing_service = BillingService()
+
+    response = await billing_service.get_wallet(req_uname)
+
+    json = response.json()
+
+    return WalletReturn(
+        username = json.get("username"),
+        amount = json.get("amount")
+    )
+
+
+async def create_transaction(
+    tr_data: TransactionCreate,
+    token_payload: dict
+):
+    # Если не совпадет - изнутри шибанет исключением 
+    check_token_uname(tr_data.username, token_payload)
+
+    billing_service = BillingService()
+    
+    response = await billing_service.create_transaction(tr_data.username, tr_data.amount)
+
+    json = response.json()
+
+    return TransactionReturn(
+        username = json.get("username"),
+        amount   = json.get("amount"),
+        id       = json.get("id")
+    )

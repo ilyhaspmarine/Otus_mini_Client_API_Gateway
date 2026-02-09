@@ -1,12 +1,13 @@
 from fastapi import Depends, FastAPI, HTTPException, status
 from prometheus_fastapi_instrumentator import Instrumentator
 from models import (
-    TokenInfo, 
-    ProfileReturn, 
-    ProfileUpdate,
+    TokenInfo,  
     UserCreate,
-    AuthCreate,
-    ProfileCreate
+    ProfileReturn,
+    ProfileUpdate,
+    WalletReturn,
+    TransactionReturn,
+    TransactionCreate
 )
 from fastapi.security import OAuth2PasswordRequestForm
 import utils
@@ -21,7 +22,7 @@ def healthcheck():
     return {"status": "OK"}
 
 
-@app.post("/login", response_model=TokenInfo, status_code=status.HTTP_200_OK)
+@app.post("/login", summary = 'Login point for user', tags = ['Auth'], response_model=TokenInfo, status_code=status.HTTP_200_OK)
 async def login(
     auth_data: OAuth2PasswordRequestForm = Depends()
 ):
@@ -32,7 +33,7 @@ async def login(
     )
 
 
-@app.get("/profile/{req_uname}", response_model=ProfileReturn, status_code=status.HTTP_200_OK)
+@app.get("/profile/{req_uname}", summary = 'Get User profile', tags = ['Profile'], response_model=ProfileReturn, status_code=status.HTTP_200_OK)
 async def get_profile (
     req_uname: str,
     token_payload: dict = Depends(utils.get_current_token_payload) 
@@ -41,7 +42,7 @@ async def get_profile (
     return result
 
 
-@app.put("/profile/{req_uname}", response_model=ProfileReturn, status_code=status.HTTP_200_OK)
+@app.put("/profile/{req_uname}", summary = 'Update User profile', tags = ['Profile'],  response_model=ProfileReturn, status_code=status.HTTP_200_OK)
 async def change_profile (
     req_uname: str,
     profile_upd: ProfileUpdate,
@@ -55,14 +56,30 @@ async def change_profile (
     return result
 
 
-@app.post("/register", response_model=ProfileReturn, status_code=status.HTTP_201_CREATED)
+@app.post("/register", summary = 'Register new User', tags = ['Auth'], response_model=ProfileReturn, status_code=status.HTTP_201_CREATED)
 async def create_new_user (
     reg_data: UserCreate
 ):
-    
     profile = await utils.process_register(reg_data)
 
     return profile
 
-# if __name__ == "__main__":
-#     uvicorn.run("main:app", reload=True)
+
+@app.get("/wallet/{req_uname}", summary = 'Create Wallet for User', tags = ['Billing', 'Wallet'], response_model = WalletReturn)
+async def get_wallet(
+    req_uname: str,
+    token_payload: dict = Depends(utils.get_current_token_payload)
+):
+    wallet = await utils.get_wallet(req_uname, token_payload)
+
+    return wallet
+
+
+@app.post("/transaction", summary = 'Create billing transaction', tags = ['Billing', 'Transaction'], response_model = TransactionReturn)
+async def create_transaction(
+    tr_data: TransactionCreate,
+    token_payload: dict = Depends(utils.get_current_token_payload)
+):
+    transaction = await utils.create_transaction(tr_data, token_payload)
+
+    return transaction

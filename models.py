@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from decimal import Decimal
 from uuid import UUID 
 
@@ -16,6 +16,8 @@ class Password(BaseModel):
 class Amount(BaseModel):
     amount: Decimal = Field(..., max_digits = 15, decimal_places= 2)
 
+class AmountStr(BaseModel):
+    amount: str = Field(..., max_length = 17 )
 
 
 class ProfileBase(BaseModel):
@@ -72,7 +74,7 @@ class WalletReturn(WalletBase, Amount):
 class TransactionBase(UserName, Amount):
     pass
 
-class TransactionCreate(TransactionBase):
+class TransactionCreate(UserName, AmountStr):
     pass
 
 class TransactionReturn(TransactionBase):
