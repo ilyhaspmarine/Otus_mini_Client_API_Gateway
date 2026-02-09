@@ -48,6 +48,18 @@ spec:
             value:  {{ .Values.profile_url.upd }}
           - name: PROFILE_PORT
             value:  {{ .Values.profile_url.port | quote}}
+          - name: BILLING_HOST
+            value: {{ .Values.billing_url.host }}
+          - name: BILLING_PATH
+            value: {{ .Values.billing_url.path }}
+          - name: BILLING_PORT
+            value: {{ .Values.billing_url.port | quote}}
+          - name: BILLING_CREATE_ENDPOINT
+            value: {{ .Values.billing_url.register }}
+          - name: BILLING_WALLET_GET_ENDPOINT
+            value: {{ .Values.billing_url.wallet }}
+          - name: BILLING_TRANSACTION_ENDPOINT
+            value: {{ .Values.billing_url.transaction }}
           livenessProbe:
             httpGet:
               path: /health/

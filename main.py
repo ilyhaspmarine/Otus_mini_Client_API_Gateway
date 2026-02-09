@@ -11,6 +11,7 @@ from models import (
 from fastapi.security import OAuth2PasswordRequestForm
 import utils
 
+
 # import uvicorn
 
 app = FastAPI(title="Client API Gateway", version="1.0.0")
@@ -58,30 +59,8 @@ async def change_profile (
 async def create_new_user (
     reg_data: UserCreate
 ):
-    auth = AuthCreate(
-        username = reg_data.username,
-        password = reg_data.password, 
-    )   
     
-    # Если не получится - изнутри шибанет исключением    
-    await utils.create_new_auth(auth)
-
-    profile = ProfileCreate(
-        username = reg_data.username,
-        firstName = reg_data.firstName,
-        lastName = reg_data.lastName,
-        email = reg_data.email,
-        phone = reg_data.phone
-    )
-
-    try:
-        profile = await utils.create_new_profile(profile)
-    except HTTPException as e:
-        # TODO
-        # Надо бы удалить созданного юзера в Auth сервисе, если тут не взлетело, но удаление в нем сейчас только авторизованным...
-        # Когда-нибудь тут появится отправка запроса с внутренним токеном кубера, а в Auth - служебный эндпойнт с контролем этого токена
-        # НО ТОЛЬКО НЕ СЕГОДНЯ! (с)
-        raise e
+    profile = await utils.process_register(reg_data)
 
     return profile
 

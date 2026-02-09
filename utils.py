@@ -3,36 +3,16 @@ from fastapi import Depends, HTTPException, status
 from jwt.exceptions import InvalidTokenError
 from config import settings
 import jwt
-import httpx
 from models import (
-    AuthCreate,
-    ProfileCreate,
+    UserCreate,
     ProfileReturn,
     ProfileUpdate
 )
+from services import AuthService, ProfileService
+from saga import SagaRegister
 
 http_bearer = HTTPBearer()
 
-def build_url(
-    host: str = None,
-    path: str = None,
-    port: str = None,
-    endpoint: str = None,
-    param: str = None
-):
-    url = "http://"
-    if host is not None:
-        url += host
-    # if path is not None:
-    #     url += '/' + path 
-    if port is not None:
-        url += ':' + port
-    if endpoint is not None:
-        url += '/' + endpoint
-    if param is not None:
-        url += '/' + param
-    print(url)
-    return url
 
 def check_response(
     response
@@ -43,7 +23,19 @@ def check_response(
             detail=response.text
         )
 
-def return_profile(
+
+def check_token_uname(
+    uname: str,
+    token_payload: dict
+):
+    if uname != token_payload.get("sub"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Access forbidden",
+        )
+
+
+def profile_from_response(
     response
 ):
     json = response.json()    
@@ -54,6 +46,7 @@ def return_profile(
         firstName = json.get("firstName"),
         lastName  = json.get("lastName")
     )
+
 
 def decode_jwt(
     token: str | bytes,
@@ -66,6 +59,7 @@ def decode_jwt(
         algorithms=[algorithm]
     )
     return decoded
+
 
 def get_current_token_payload(
     credentials: HTTPAuthorizationCredentials = Depends(http_bearer),
@@ -83,77 +77,17 @@ def get_current_token_payload(
 
     return payload
 
+
 async def process_login(
     auth_data: OAuth2PasswordRequestForm
 ):
-    url = build_url(
-        host = settings.auth_url.host,
-        path = settings.auth_url.path,
-        port = settings.auth_url.port,
-        endpoint = settings.auth_url.login_endpoint
-    )
+    auth_service = AuthService()
 
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            url,
-            data={
-                "username": auth_data.username,
-                "password": auth_data.password
-            }
-        )
-
-    check_response(response)
+    response = await auth_service.login(auth_data)
 
     return response.json()
 
-async def create_new_auth (
-        new_auth: AuthCreate
-):
-    url = build_url(
-        host = settings.auth_url.host,
-        path = settings.auth_url.path,
-        port = settings.auth_url.port,
-        endpoint = settings.auth_url.register_endpoint 
-    )
 
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            url,
-            json = new_auth.model_dump()
-        )
-
-    check_response(response)
-
-async def create_new_profile(
-    new_profile: ProfileCreate
-):
-    url = build_url(
-        host = settings.prof_url.host,
-        path = settings.prof_url.path,
-        port = settings.prof_url.port,
-        endpoint = settings.prof_url.register_endpoint
-    )
-
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            url,
-            json = new_profile.model_dump()
-        )
-
-    check_response(response)
-
-    return return_profile(response)
-
-def check_token_uname(
-    uname: str,
-    token_payload: dict
-):
-    if uname != token_payload.get("sub"):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"Access forbidden",
-        )
-    
 async def get_profile(
     req_uname: str,
     token_payload: dict
@@ -161,22 +95,12 @@ async def get_profile(
     # Если не совпадет - изнутри шибанет исключением 
     check_token_uname(req_uname, token_payload)
 
-    url = build_url(
-        host = settings.prof_url.host,
-        path = settings.prof_url.path,
-        port = settings.prof_url.port,
-        endpoint = settings.prof_url.get_endpoint,
-        param = req_uname
-    )
+    profile_service = ProfileService()
 
-    async with httpx.AsyncClient() as client:
-        response = await client.get(
-            url
-        )
+    response = await profile_service.get_profile(req_uname)
 
-    check_response(response)
+    return profile_from_response(response)
 
-    return return_profile(response)
 
 async def update_profile(
     req_uname: str,
@@ -186,28 +110,19 @@ async def update_profile(
     # Если не совпадет - изнутри шибанет исключением 
     check_token_uname(req_uname, token_payload)
 
-    url = build_url(
-        host = settings.prof_url.host,
-        path = settings.prof_url.path,
-        port = settings.prof_url.port,
-        endpoint = settings.prof_url.upd_endpoint,
-        param = req_uname
-    )
+    profile_service = ProfileService()
 
-    async with httpx.AsyncClient() as client:
-        response = await client.put(
-            url,
-            json = profile_upd.model_dump()
-        )
-
-    check_response(response) 
+    response = await profile_service.upd_profile(req_uname, profile_upd)
     
-    json = response.json()
+    return profile_from_response(response)
 
-    return ProfileReturn(
-        username  = req_uname,
-        email     = json.get("email"),
-        phone     = json.get("phone"),
-        firstName = json.get("firstName"),
-        lastName  = json.get("lastName")
-    )
+
+async def process_register(
+    reg_data: UserCreate
+):
+    saga = SagaRegister()
+
+    # Сага сама выкинет исключения при возникновении
+    result = await saga.execute_saga(reg_data)
+
+    return result
