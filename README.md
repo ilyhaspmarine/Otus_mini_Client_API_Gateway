@@ -36,13 +36,6 @@ https://github.com/ilyhaspmarine/Otus_mini_auth
 ##### Забираем сгенерированный для аутентификации оттуда файлик etc/keys/jwt-public.pem - это открытый ключ для валидации JWT нашим Gateway
 ##### ВАЖНО: файлик должен быть один и тот же (с одинаковым ключом)
 
-##### Генерируем пару ключей для rollback-токенов
-```
-openssl genrsa -out ./etc/keys/rollback/private.pem 2048
-```
-```
-openssl rsa -in ./etc/keys/rollback/private.pem -pubout -out ./etc/keys/rollback/public.pem 
-```
 
 #### Создаем namespace под gateway
 ```
