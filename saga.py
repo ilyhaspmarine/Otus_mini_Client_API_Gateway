@@ -1,5 +1,8 @@
-from models import UserCreate, ProfileReturn
-from services import AuthService, ProfileService, BillingService
+from models import UserCreate, ProfileReturn, OrderCreate, OrderReturn
+from services import AuthService, ProfileService, BillingService, OrderService
+from fastapi import HTTPException
+from uuid import UUID
+from decimal import Decimal
 
 class SagaRegister():
 
@@ -65,4 +68,68 @@ class SagaRegister():
                 self.__auth_created = False
         except Exception as e:
             print('Ошибка при откате регистрации: ' + str(e))
+            raise
+
+
+class SagaOrder:
+    def __init__(self):
+        self.__order_id = None
+        self.__payment_id = None
+        self.__order_status_set = False
+
+    
+    async def execute_saga(
+        self,
+        order_data: OrderCreate
+    ):
+        order_service = OrderService()
+        billing_service = BillingService()
+
+        try:
+            order_response = await order_service.create_order(order_data.username, order_data.price)
+            self.__order_id = order_response.json().get('id')
+
+            tr_amount = -Decimal(order_data.price)
+            billing_response = await billing_service.create_transaction(order_data.username, tr_amount)
+            self.__payment_id = billing_response.json().get('id')
+
+            status_response = await order_service.payment_confirmed(self.__order_id, self.__payment_id)
+            self.__order_status_set = True
+
+        except Exception as e:
+            print('Ошибка при оформлении заказа: ' + str(e))
+            await self.rollback_saga(order_data)
+            raise
+
+        json = status_response.json()
+        return OrderReturn(
+            id = UUID(json.get('id')),
+            username = json.get('username'),
+            price = json.get('price'),
+            status = json.get('status'),
+            placed_at = json.get('placed_at'),
+            updated_at = json.get('updated_at')
+        )
+
+
+    async def rollback_saga(
+        self,
+        order_data: OrderCreate
+    ):
+        order_service = OrderService()
+        billing_service = BillingService()
+
+        try:
+            if self.__order_status_set:
+                # Как бе нечего откатывать, финальный шаг был
+                self.__order_status_set = False
+                pass
+            if self.__payment_id:
+                # Откат транзакций тоже не предполагается в общем-то
+                self.__payment_id = None
+                pass
+            if self.__order_id:
+                order_response = await order_service.payment_failed(self.__order_id)
+        except Exception as e:
+            print('Ошибка при откате заказа: ' + str(e))
             raise

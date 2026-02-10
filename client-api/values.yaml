@@ -53,3 +53,12 @@ billing_url:
   transaction: "transaction"
   wallet: "wallet"
   port: "80"
+
+order_url:
+  host: "order-service.order"
+  path: None
+  create: "orders"
+  event: "orders"
+  get_by_id: "orders/id"
+  get_by_user: "orders/user"
+  port: "80"

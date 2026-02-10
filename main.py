@@ -7,11 +7,14 @@ from models import (
     ProfileUpdate,
     WalletReturn,
     TransactionReturn,
-    TransactionCreate
+    TransactionCreate,
+    OrderCreate,
+    OrderReturn
 )
 from fastapi.security import OAuth2PasswordRequestForm
 import utils
-
+from uuid import UUID
+from typing import List
 
 # import uvicorn
 
@@ -83,3 +86,32 @@ async def create_transaction(
     transaction = await utils.create_transaction(tr_data, token_payload)
 
     return transaction
+
+@app.post("/orders", summary = 'Create order', tags = ['Orders'], response_model = OrderReturn, status_code = status.HTTP_201_CREATED)
+async def create_order(
+    order_data: OrderCreate,
+    token_payload: dict = Depends(utils.get_current_token_payload)
+):
+    order = await utils.process_new_order(order_data, token_payload)
+
+    return order
+
+
+@app.get("/orders/id/{order_id}", summary = 'Get order by ID', tags = ['Orders'], response_model = OrderReturn)
+async def get_order_by_id(
+    order_id: UUID,
+    token_payload: dict = Depends(utils.get_current_token_payload)
+):
+    order = await utils.get_order_by_id(order_id, token_payload)
+
+    return order
+
+
+@app.get("/orders/user/{req_uname}", summary = 'Get orders for user', tags = ['Orders'], response_model = List[OrderReturn])
+async def get_orders_for_user(
+    req_uname: str,
+    token_payload: dict = Depends(utils.get_current_token_payload)
+):
+    orders = await utils.get_orders_by_uname(req_uname, token_payload)
+
+    return orders

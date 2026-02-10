@@ -60,6 +60,20 @@ spec:
             value: {{ .Values.billing_url.wallet }}
           - name: BILLING_TRANSACTION_ENDPOINT
             value: {{ .Values.billing_url.transaction }}
+          - name: ORDERS_HOST
+            value: {{ .Values.order_url.host }}
+          - name: ORDERS_PATH
+            value: {{ .Values.order_url.path }}
+          - name: ORDERS_PORT
+            value: {{ .Values.billing_url.port | quote}}
+          - name: ORDERS_CREATE_ENDPOINT
+            value: {{ .Values.order_url.create }}
+          - name: ORDERS_EVENT_ENDPOINT
+            value: {{ .Values.order_url.event }}
+          - name: ORDERS_GET_BY_ID_ENDPOINT
+            value: {{ .Values.order_url.get_by_id }}
+          - name: ORDERS_GET_BY_USER_ENDPOINT
+            value: {{ .Values.order_url.get_by_user }}
           livenessProbe:
             httpGet:
               path: /health/

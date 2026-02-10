@@ -1,6 +1,8 @@
 from pydantic import BaseModel, EmailStr, Field, field_validator
 from decimal import Decimal
 from uuid import UUID 
+from datetime import datetime
+from typing import Optional
 
 
 class TokenInfo(BaseModel):
@@ -18,6 +20,33 @@ class Amount(BaseModel):
 
 class AmountStr(BaseModel):
     amount: str = Field(..., max_length = 17 )
+
+class Price(BaseModel):
+    price: Decimal = Field(..., max_digits = 15, decimal_places= 2)
+
+class PriceStr(BaseModel):
+    price: str = Field(..., max_length = 17 )
+
+class OrderID(BaseModel):
+    id: UUID
+
+class OrderIDStr(BaseModel):
+    id: str
+    
+class Event(BaseModel):
+    event: str
+
+
+class OrderCreate(UserName, PriceStr):
+    pass
+
+class OrderUpdateEvent(OrderIDStr, Event):
+    payment_id: Optional[str] = None
+
+class OrderReturn(OrderID, UserName, Price):
+    status: str = Field()
+    placed_at: datetime = Field()
+    updated_at: datetime = Field() 
 
 
 class ProfileBase(BaseModel):

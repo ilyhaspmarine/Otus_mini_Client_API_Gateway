@@ -9,10 +9,14 @@ from models import (
     ProfileUpdate,
     WalletReturn,
     TransactionCreate,
-    TransactionReturn
+    TransactionReturn,
+    OrderCreate,
+    OrderReturn
 )
-from services import AuthService, ProfileService, BillingService
-from saga import SagaRegister
+from services import AuthService, ProfileService, BillingService, OrderService
+from saga import SagaRegister, SagaOrder
+from uuid import UUID
+from typing import List
 
 http_bearer = HTTPBearer()
 
@@ -168,3 +172,58 @@ async def create_transaction(
         amount   = json.get("amount"),
         id       = json.get("id")
     )
+
+
+async def process_new_order(
+    order_data: OrderCreate,
+    token_payload: dict
+):
+    # Если не совпадет - изнутри шибанет исключением 
+    check_token_uname(order_data.username, token_payload)
+
+    saga = SagaOrder()
+
+    result = await saga.execute_saga(order_data)
+
+    return result
+
+
+async def get_order_by_id(
+    order_id: UUID,
+    token_payload: dict
+):
+    order_service = OrderService()
+
+    response = await order_service.get_order_by_id(order_id)
+
+    json = response.json()
+
+    order = OrderReturn(
+        id = UUID(json.get('id')),
+        username = json.get('username'),
+        status = json.get('status'),
+        price = json.get('price'),
+        placed_at = json.get('placed_at'),
+        updated_at = json.get('updated_at')
+    )
+
+    check_token_uname(order.username, token_payload)
+
+    return order
+
+
+async def get_orders_by_uname(
+    req_uname: str,
+    token_payload: dict
+):
+    check_token_uname(req_uname, token_payload)
+
+    order_service = OrderService()
+
+    response = await order_service.get_orders_by_uname(req_uname)
+
+    data_list = response.json()
+
+    orders: List[OrderReturn] = [OrderReturn.model_validate(item) for item in data_list]
+
+    return orders
