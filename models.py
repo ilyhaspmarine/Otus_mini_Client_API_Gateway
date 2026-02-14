@@ -27,12 +27,12 @@ class Price(BaseModel):
 class PriceStr(BaseModel):
     price: str = Field(..., max_length = 17 )
 
-class OrderID(BaseModel):
+class ID(BaseModel):
     id: UUID
 
-class OrderIDStr(BaseModel):
+class IDStr(BaseModel):
     id: str
-    
+
 class Event(BaseModel):
     event: str
 
@@ -40,10 +40,10 @@ class Event(BaseModel):
 class OrderCreate(UserName, PriceStr):
     pass
 
-class OrderUpdateEvent(OrderIDStr, Event):
+class OrderUpdateEvent(IDStr, Event):
     payment_id: Optional[str] = None
 
-class OrderReturn(OrderID, UserName, Price):
+class OrderReturn(ID, UserName, Price):
     status: str = Field()
     placed_at: datetime = Field()
     updated_at: datetime = Field() 
@@ -109,5 +109,13 @@ class TransactionCreate(UserName, AmountStr):
 class TransactionReturn(TransactionBase):
     id: UUID = Field()
 
+    class Config:
+        from_attributes = True
+
+
+class NotificationReturn(ID, UserName):
+    email: EmailStr
+    sent_at: datetime
+    text: str
     class Config:
         from_attributes = True

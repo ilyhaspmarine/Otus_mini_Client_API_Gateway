@@ -97,7 +97,7 @@ class SagaOrder:
             self.__order_status_set = True
 
         except Exception as e:
-            print('Ошибка при оформлении заказа: ' + str(e))
+            print(f'Ошибка при оформлении заказа: {e}')
             await self.rollback_saga(order_data)
             raise
 
@@ -131,5 +131,5 @@ class SagaOrder:
             if self.__order_id:
                 order_response = await order_service.payment_failed(self.__order_id)
         except Exception as e:
-            print('Ошибка при откате заказа: ' + str(e))
+            print(f'Ошибка при откате заказа: {e}')
             raise

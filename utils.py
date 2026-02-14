@@ -11,9 +11,10 @@ from models import (
     TransactionCreate,
     TransactionReturn,
     OrderCreate,
-    OrderReturn
+    OrderReturn,
+    NotificationReturn
 )
-from services import AuthService, ProfileService, BillingService, OrderService
+from services import AuthService, ProfileService, BillingService, OrderService, NotificationService
 from saga import SagaRegister, SagaOrder
 from uuid import UUID
 from typing import List
@@ -227,3 +228,20 @@ async def get_orders_by_uname(
     orders: List[OrderReturn] = [OrderReturn.model_validate(item) for item in data_list]
 
     return orders
+
+
+async def get_notifications_for_order(
+    order_id: UUID,
+    token_payload: dict
+):
+    order = await get_order_by_id(order_id, token_payload)
+
+    notif_service = NotificationService()
+
+    response = await notif_service.get_notifications_for_order_id(order_id)
+
+    data_list = response.json()
+
+    notifications: List[NotificationReturn] = [NotificationReturn.model_validate(item) for item in data_list]
+
+    return notifications

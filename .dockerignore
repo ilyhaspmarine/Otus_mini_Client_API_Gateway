@@ -1,0 +1,8 @@
+__pycache__/
+Dockerfile
+postman/
+client-api/
+etc/
+README.md
+.gitignore
+.dockerignore

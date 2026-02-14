@@ -9,7 +9,8 @@ from models import (
     TransactionReturn,
     TransactionCreate,
     OrderCreate,
-    OrderReturn
+    OrderReturn,
+    NotificationReturn
 )
 from fastapi.security import OAuth2PasswordRequestForm
 import utils
@@ -115,3 +116,13 @@ async def get_orders_for_user(
     orders = await utils.get_orders_by_uname(req_uname, token_payload)
 
     return orders
+
+
+@app.get('/notifications/{order_id}', summary = 'Get notifications for order', tags = ['Notifications', 'Orders'], response_model = List[NotificationReturn])
+async def get_notifications_for_order(
+    order_id: UUID,
+    token_payload: dict = Depends(utils.get_current_token_payload)
+):
+    notifications = await utils.get_notifications_for_order(order_id, token_payload)
+    
+    return notifications
