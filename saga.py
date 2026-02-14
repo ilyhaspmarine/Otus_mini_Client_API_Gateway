@@ -98,8 +98,8 @@ class SagaOrder:
 
         except Exception as e:
             print(f'Ошибка при оформлении заказа: {e}')
-            await self.rollback_saga(order_data)
-            raise
+            status_response = await self.rollback_saga(order_data)
+            # raise
 
         json = status_response.json()
         return OrderReturn(
@@ -129,7 +129,8 @@ class SagaOrder:
                 self.__payment_id = None
                 pass
             if self.__order_id:
-                order_response = await order_service.payment_failed(self.__order_id)
+                status_response = await order_service.payment_failed(self.__order_id)
+                return status_response
         except Exception as e:
             print(f'Ошибка при откате заказа: {e}')
             raise
