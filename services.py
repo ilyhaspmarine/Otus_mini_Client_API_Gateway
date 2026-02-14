@@ -359,7 +359,7 @@ class OrderService(Service):
         self,
         order_id: UUID
     ):
-        url = self._build_endpoint_url(settings.order_url.get_by_id_endpoint, order_id)
+        url = self._build_endpoint_url(settings.order_url.get_by_id_endpoint, str(order_id))
 
         async with httpx.AsyncClient() as client:
             response = await client.get(url)
@@ -395,7 +395,7 @@ class NotificationService(Service):
         self,
         order_id: UUID
     ):
-        url = self._build_endpoint_url(settings.notif_url.get_by_order_id_endpoint, order_id)
+        url = self._build_endpoint_url(settings.notif_url.get_by_order_id_endpoint, str(order_id))
 
         async with httpx.AsyncClient() as client:
             response = await client.get(url)

@@ -74,6 +74,14 @@ spec:
             value: {{ .Values.order_url.get_by_id }}
           - name: ORDERS_GET_BY_USER_ENDPOINT
             value: {{ .Values.order_url.get_by_user }}
+          - name: NOTIFICATIONS_HOST
+            value: {{ .Values.notifications_url.host }}
+          - name: NOTIFICATIONS_PATH
+            value: {{ .Values.notifications_url.path }}
+          - name: NOTIFICATIONS_PORT
+            value: {{ .Values.notifications_url.port | quote}}
+          - name: NOTIFICATIONS_GET_BY_ORDER_ID_ENDPOINT
+            value: {{  .Values.notifications_url.get_by_order_id }}
           livenessProbe:
             httpGet:
               path: /health/

@@ -62,3 +62,9 @@ order_url:
   get_by_id: "orders/id"
   get_by_user: "orders/user"
   port: "80"
+
+notifications_url:
+  host: "notifications-service.notif"
+  path: None
+  get_by_order_id: "order"
+  port: "80"
