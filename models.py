@@ -114,6 +114,7 @@ class TransactionReturn(TransactionBase):
 
 
 class NotificationReturn(ID, UserName):
+    order_id: UUID
     email: EmailStr
     sent_at: datetime
     text: str
