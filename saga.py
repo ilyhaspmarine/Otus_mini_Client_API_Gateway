@@ -125,7 +125,9 @@ class SagaOrder:
                 self.__order_status_set = False
                 pass
             if self.__payment_id:
-                # Откат транзакций тоже не предполагается в общем-то
+                # Откат транзакции реализуется новой транзакцией с противоположным знаком
+                tr_amount = Decimal(order_data.price)
+                billing_response = await billing_service.create_transaction(order_data.username, tr_amount)
                 self.__payment_id = None
                 pass
             if self.__order_id:
