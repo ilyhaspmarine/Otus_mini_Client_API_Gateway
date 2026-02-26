@@ -60,6 +60,8 @@ spec:
             value: {{ .Values.billing_url.wallet }}
           - name: BILLING_TRANSACTION_ENDPOINT
             value: {{ .Values.billing_url.transaction }}
+          - name: BILLING_STORNO_ENDPOINT
+            value: {{ .Values.billing_url.storno}}
           - name: ORDERS_HOST
             value: {{ .Values.order_url.host }}
           - name: ORDERS_PATH
@@ -82,6 +84,38 @@ spec:
             value: {{ .Values.notifications_url.port | quote}}
           - name: NOTIFICATIONS_GET_BY_ORDER_ID_ENDPOINT
             value: {{  .Values.notifications_url.get_by_order_id }}
+          - name: WAREHOUSE_HOST
+            value: {{ .Values.warehouse_url.host }}
+          - name: WAREHOUSE_PATH
+            value: {{ .Values.warehouse_url.path }}
+          - name: WAREHOUSE_PORT
+            value: {{ .Values.warehouse_url.port | quote}}        
+          - name: WAREHOUSE_GOOD_CREATE_ENDPOINT
+            value: {{ .Values.warehouse_url.good_create }}
+          - name: WAREHOUSE_STOCK_CREATE_ENDPOINT
+            value: {{ .Values.warehouse_url.stock_create }}
+          - name: WAREHOUSE_STOCK_GET_ENDPOINT
+            value: {{ .Values.warehouse_url.stock_get }}
+          - name: WAREHOUSE_RESERVE_CREATE_ENDPOINT
+            value: {{ .Values.warehouse_url.reserve_create }}
+          - name: WAREHOUSE_RESERVE_GET_ENDPOINT
+            value: {{ .Values.warehouse_url.reserve_get }}
+          - name: WAREHOUSE_RESERVE_CANCEL_ENDPOINT
+            value: {{ .Values.warehouse_url.reserve_cancel }}
+          - name: DELIVERY_HOST
+            value: {{ .Values.warehouse_url.host }}
+          - name: DELIVERY_PATH
+            value: {{ .Values.warehouse_url.path }}
+          - name: DELIVERY_PORT
+            value: {{ .Values.warehouse_url.port | quote}}   
+          - name: DELIVERY_COURIER_CREATE_ENDPOINT
+            value: {{ .Values.delivery_url.courier_create }}
+          - name: DELIVERY_CREATE_ENDPOINT
+            value: {{ .Values.delivery_url.delivery_create }}
+          - name: DELIVERY_GET_ENDPOINT
+            value: {{ .Values.delivery_url.delivery_get }}
+          - name: DELIVERY_CANCEL_ENDPOINT
+            value: {{ .Values.delivery_url.delivery_cancel }}
           livenessProbe:
             httpGet:
               path: /health/

@@ -1,6 +1,7 @@
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, OAuth2PasswordRequestForm
 from fastapi import Depends, HTTPException, status
 from jwt.exceptions import InvalidTokenError
+from sqlalchemy.ext.asyncio import AsyncSession
 from config import settings
 import jwt
 from models import (
@@ -14,7 +15,11 @@ from models import (
     OrderReturn,
     NotificationReturn
 )
-from services import AuthService, ProfileService, BillingService, OrderService, NotificationService
+from service_auth import AuthService
+from service_profile import ProfileService
+from service_billing import BillingService
+from service_order import OrderService
+from service_notification import NotificationService
 from saga import SagaRegister, SagaOrder
 from uuid import UUID
 from typing import List
@@ -177,14 +182,15 @@ async def create_transaction(
 
 async def process_new_order(
     order_data: OrderCreate,
-    token_payload: dict
+    token_payload: dict,
+    db: AsyncSession
 ):
     # Если не совпадет - изнутри шибанет исключением 
     check_token_uname(order_data.username, token_payload)
 
     saga = SagaOrder()
 
-    result = await saga.execute_saga(order_data)
+    result = await saga.execute_saga(order_data, db)
 
     return result
 

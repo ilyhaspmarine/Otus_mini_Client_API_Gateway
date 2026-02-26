@@ -7,3 +7,6 @@ prometheus_fastapi_instrumentator
 email-validator
 pyjwt[crypto]
 python-multipart
+sqlalchemy
+asyncpg
+psycopg2-binary

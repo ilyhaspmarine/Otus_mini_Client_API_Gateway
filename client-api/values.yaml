@@ -51,6 +51,7 @@ billing_url:
   path: None
   register: "register"
   transaction: "transaction"
+  storno: "transaction/storno"
   wallet: "wallet"
   port: "80"
 
@@ -68,3 +69,49 @@ notifications_url:
   path: None
   get_by_order_id: "order"
   port: "80"
+
+warehouse_url:
+  host: "warehouse-service.notif"
+  path: None
+  good_create: goods
+  stock_get: stocks
+  stock_create: stocks
+  reserve_create: reservations
+  reserve_get: reservations/order
+  reserve_cancel: reservations/order/cancel
+  port: "80"
+
+delivery_url:
+  host: "delivery-service.notif"
+  path: None
+  courier_create: couriers
+  delivery_create: deliveries
+  delivery_get: deliveries
+  delivery_cancel: deliveries/cancel
+  port: "80"
+
+postgresql:
+  nameOverride: "saga-postgresql"
+
+  auth:
+    username: saga-app
+    database: saga_db
+    existingSecret: saga-db-secret
+    secretKeys:
+      userPasswordKey: password
+
+  primary:
+    service:
+      type: ClusterIP
+      port: 5432
+
+    persistence:
+      enabled: true
+      size: 1Gi
+      storageClass: standard
+
+  architecture: "standalone"
+
+configMap:
+  driver_sync: "psycopg2"
+  driver_async: "asyncpg"

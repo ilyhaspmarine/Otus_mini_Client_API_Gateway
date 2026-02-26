@@ -3,8 +3,9 @@ from decimal import Decimal
 from uuid import UUID 
 from datetime import datetime
 from typing import Optional
+from typing import List
 
-
+# _________________________________________________________
 class TokenInfo(BaseModel):
     access_token: str
     token_type: str
@@ -36,8 +37,35 @@ class IDStr(BaseModel):
 class Event(BaseModel):
     event: str
 
+class CreatedAt(BaseModel):
+    created_at: datetime
 
+class Quantity(BaseModel):
+    quantity: int
+    
+class GoodID(BaseModel):
+    good_id: UUID
+
+class GoodIDStr(BaseModel):
+    good_id: str
+
+class LastChanged(BaseModel):
+    last_changed: datetime
+
+class OrderID(BaseModel):
+    order_id: UUID
+
+class OrderIDStr(BaseModel):
+    order_id: str
+# _________________________________________________________
+
+
+# _________________________________________________________
 class OrderCreate(UserName, PriceStr):
+    address: str
+    positions: List[OrderPosCreate] = []
+
+class OrderPosCreate(GoodID, Quantity, PriceStr):
     pass
 
 class OrderUpdateEvent(IDStr, Event):
@@ -47,8 +75,10 @@ class OrderReturn(ID, UserName, Price):
     status: str = Field()
     placed_at: datetime = Field()
     updated_at: datetime = Field() 
+# _________________________________________________________
 
 
+# _________________________________________________________
 class ProfileBase(BaseModel):
     firstName: str = Field(..., min_length=1, max_length=100)
     lastName: str = Field(..., min_length=1, max_length=100)
@@ -67,9 +97,10 @@ class ProfileUpdate(ProfileBase):
 class ProfileReturn(Profile):
     class Config:
         from_attributes = True
+# _________________________________________________________
 
 
-
+# _________________________________________________________
 class AuthBase(UserName, Password):
     pass
 
@@ -78,14 +109,15 @@ class AuthCreate(AuthBase):
 
 class AuthLogin(AuthBase):
     pass
+# _________________________________________________________
 
-
-
+# _________________________________________________________
 class UserCreate(Profile, Password):
     pass
+# _________________________________________________________
 
 
-
+# _________________________________________________________
 class WalletBase(UserName):
     pass
 
@@ -97,9 +129,10 @@ class WalletReturn(WalletBase, Amount):
 
     class Config:
         from_attributes = True
+# _________________________________________________________
 
 
-
+# _________________________________________________________
 class TransactionBase(UserName, Amount):
     pass
 
@@ -111,12 +144,107 @@ class TransactionReturn(TransactionBase):
 
     class Config:
         from_attributes = True
+# _________________________________________________________
 
 
+# _________________________________________________________
 class NotificationReturn(ID, UserName):
     order_id: UUID
     email: EmailStr
     sent_at: datetime
     text: str
+    class Config:
+        from_attributes = True
+# _________________________________________________________
+
+
+# _________________________________________________________
+class GoodBase(Price):
+    name: str
+
+class GoodCreate(GoodBase):
+    pass
+
+class GoodReturn(ID, GoodBase):
+    pass
+    class Config:
+        from_attributes = True
+# _________________________________________________________
+
+
+# _________________________________________________________
+class StockBase(Quantity, GoodIDStr):
+    pass
+
+class StockCreate(StockBase):
+    pass
+
+
+class StockReturn(ID, StockBase, CreatedAt, LastChanged):
+    reserved: int
+    available: int
+    class Config:
+        from_attributes = True
+# _________________________________________________________
+
+
+# _________________________________________________________
+class ReservationPosCreate(GoodIDStr, Quantity):
+    pass
+
+
+class ReservationCreate(OrderIDStr):
+    positions: List[ReservationPosCreate] = []
+
+
+class ReservationHeadBase(ID, CreatedAt, OrderID, LastChanged):
+    canceled: bool
+
+
+class ReservationPositionBase(IDStr, Quantity):
+    posno: int
+
+    stock_id: UUID    
+
+
+class ReservationReturn(ReservationHeadBase):
+    positions: List[ReservationPositionBase]
+
+    class Config:
+        from_attributes = True
+# _________________________________________________________
+
+
+
+# _________________________________________________________
+class CourierBase(BaseModel):
+    first_name: str
+    last_name: str  
+    phone: str = Field(..., min_length=12, max_length=12)
+
+class CourierCreate(CourierBase):
+    pass
+
+class CourierReturn(ID, CourierBase):
+    pass
+    class Config:
+        from_attributes = True
+# _________________________________________________________
+
+
+# _________________________________________________________
+class DeliveryBase(BaseModel):
+    order_id: UUID
+    address: str
+
+class DeliveryCreate(DeliveryBase):
+    pass
+
+class DeliveryReturn(ID, DeliveryBase):
+    courier_id: UUID
+    courier_name: str
+    status: str
+    created_at: datetime
+    last_changed: datetime
     class Config:
         from_attributes = True

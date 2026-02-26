@@ -109,3 +109,16 @@ Create the name of the service account to use
 {{- $public := .Values.jwt.public -}}
 {{- printf "%s/%s" $mountPath $public -}}
 {{- end }}
+
+{{/*
+Формирует имя сервиса PostgreSQL, используя Release.Name и postgresql.nameOverride
+*/}}
+{{- define "billing-app.dbhost" -}}
+{{- $releaseName := .Release.Name -}}
+{{- $nameOverride := .Values.postgresql.nameOverride -}}
+{{- if $nameOverride -}}
+{{- printf "%s-%s" $releaseName $nameOverride -}}
+{{- else -}}
+{{- printf "%s-%s" $releaseName "postgresql" -}} {{/* Значение по умолчанию, если nameOverride не задан */}}
+{{- end -}}
+{{- end }}

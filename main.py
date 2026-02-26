@@ -16,6 +16,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 import utils
 from uuid import UUID
 from typing import List
+from db import _get_db
 
 # import uvicorn
 
@@ -91,9 +92,10 @@ async def create_transaction(
 @app.post("/orders", summary = 'Create order', tags = ['Orders'], response_model = OrderReturn, status_code = status.HTTP_201_CREATED)
 async def create_order(
     order_data: OrderCreate,
-    token_payload: dict = Depends(utils.get_current_token_payload)
+    token_payload: dict = Depends(utils.get_current_token_payload),
+    db = Depends(_get_db)
 ):
-    order = await utils.process_new_order(order_data, token_payload)
+    order = await utils.process_new_order(order_data, token_payload, db)
 
     return order
 
