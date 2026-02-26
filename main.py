@@ -10,7 +10,13 @@ from models import (
     TransactionCreate,
     OrderCreate,
     OrderReturn,
-    NotificationReturn
+    NotificationReturn,
+    GoodReturn,
+    GoodCreate,
+    StockCreate,
+    StockReturn,
+    CourierCreate, 
+    CourierReturn
 )
 from fastapi.security import OAuth2PasswordRequestForm
 import utils
@@ -128,3 +134,32 @@ async def get_notifications_for_order(
     notifications = await utils.get_notifications_for_order(order_id, token_payload)
     
     return notifications
+
+@app.post('/goods', summary='Create new good', tags=['Warehouse', 'Goods'], response_model=GoodReturn, status_code = status.HTTP_201_CREATED)
+async def good_create(
+    good_data: GoodCreate,
+    token_payload: dict = Depends(utils.get_current_token_payload)
+):
+    good = await utils.create_good(good_data)
+
+    return good
+
+
+@app.post('/stocks', summary='Add stock for good', tags=['Warehouse', 'Stocks'], response_model=StockReturn, status_code = status.HTTP_201_CREATED)
+async def stock_add(
+    stock_data: StockCreate,
+    token_payload: dict = Depends(utils.get_current_token_payload)
+):
+    stock = await utils.stock_add(stock_data)
+
+    return stock
+
+
+@app.post('/couriers', summary = 'Create new courier', tags=['Delivery', 'Couriers'], response_model = CourierReturn, status_code = status.HTTP_201_CREATED)
+async def create_new_courier(
+    courier_data: CourierCreate,
+    token_payload: dict = Depends(utils.get_current_token_payload)
+):
+    courier = await utils.courier_create(courier_data)
+
+    return courier

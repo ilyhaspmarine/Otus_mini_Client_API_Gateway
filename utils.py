@@ -13,12 +13,20 @@ from models import (
     TransactionReturn,
     OrderCreate,
     OrderReturn,
-    NotificationReturn
+    NotificationReturn,
+    GoodCreate, 
+    GoodReturn,
+    StockCreate,
+    StockReturn,
+    CourierCreate,
+    CourierReturn
 )
 from service_auth import AuthService
 from service_profile import ProfileService
 from service_billing import BillingService
 from service_order import OrderService
+from service_warehouse import WarehouseService
+from service_delivery import DeliveryService
 from service_notification import NotificationService
 from saga import SagaRegister
 from saga_order import SagaOrder
@@ -252,3 +260,39 @@ async def get_notifications_for_order(
     notifications: List[NotificationReturn] = [NotificationReturn.model_validate(item) for item in data_list]
 
     return notifications
+
+
+async def good_create(
+    good_data: GoodCreate
+):
+    warehouse_service = WarehouseService()
+
+    response = await warehouse_service.create_good(good_data)
+
+    json = response.json()
+
+    return GoodReturn.model_validate(json)
+
+
+async def stock_add(
+    stock_data: StockCreate
+):
+    warehouse_service = WarehouseService()
+
+    response = await warehouse_service.add_stock(stock_data)
+
+    json = response.json()
+
+    return StockReturn.model_validate(json)
+
+
+async def courier_create(
+    courier_data: CourierCreate
+):
+    delivery_service = DeliveryService()
+
+    response = await delivery_service.create_courier(courier_data)
+
+    json = response.json()
+
+    return CourierReturn.model_validate(json)
