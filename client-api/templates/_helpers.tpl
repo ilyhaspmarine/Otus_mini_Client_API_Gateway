@@ -113,7 +113,7 @@ Create the name of the service account to use
 {{/*
 Формирует имя сервиса PostgreSQL, используя Release.Name и postgresql.nameOverride
 */}}
-{{- define "billing-app.dbhost" -}}
+{{- define "client-api.dbhost" -}}
 {{- $releaseName := .Release.Name -}}
 {{- $nameOverride := .Values.postgresql.nameOverride -}}
 {{- if $nameOverride -}}

@@ -20,7 +20,8 @@ from service_profile import ProfileService
 from service_billing import BillingService
 from service_order import OrderService
 from service_notification import NotificationService
-from saga import SagaRegister, SagaOrder
+from saga import SagaRegister
+from saga_order import SagaOrder
 from uuid import UUID
 from typing import List
 

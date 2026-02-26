@@ -61,12 +61,12 @@ class OrderIDStr(BaseModel):
 
 
 # _________________________________________________________
+class OrderPosCreate(GoodID, Quantity, PriceStr):
+    pass
+
 class OrderCreate(UserName, PriceStr):
     address: str
     positions: List[OrderPosCreate] = []
-
-class OrderPosCreate(GoodID, Quantity, PriceStr):
-    pass
 
 class OrderUpdateEvent(IDStr, Event):
     payment_id: Optional[str] = None
