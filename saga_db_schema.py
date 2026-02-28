@@ -16,7 +16,7 @@ class SagaStatus(str, Enum):
 class SagaOrder(Base):
     __tablename__ = 'order_sagas'
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4(), nullable=False)
 
     order_id = Column(UUID(as_uuid=True))
 
@@ -36,5 +36,5 @@ class SagaOrder(Base):
 
     status = Column(SQLEnum(SagaStatus), nullable=False, default=SagaStatus.UNFINISHED)
     # Метка времени, чтобы отделять зависшие саги от идущих здесь и сейчас в потенциальном "разгребателе" 
-    last_updated = Column(DateTime, nullable=False, default=datetime.utcnow)
+    last_updated = Column(DateTime, nullable=False, default=datetime.utcnow())
 

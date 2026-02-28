@@ -64,9 +64,15 @@ class OrderIDStr(BaseModel):
 class OrderPosCreate(GoodID, Quantity, PriceStr):
     pass
 
-class OrderCreate(UserName, PriceStr):
+
+class OrderCreateOrderService(UserName, PriceStr):
+    pass
+
+
+class OrderCreate(OrderCreateOrderService):
     address: str
     positions: List[OrderPosCreate] = []
+
 
 class OrderUpdateEvent(IDStr, Event):
     payment_id: Optional[str] = None
@@ -159,7 +165,7 @@ class NotificationReturn(ID, UserName):
 
 
 # _________________________________________________________
-class GoodBase(Price):
+class GoodBase(PriceStr):
     name: str
 
 class GoodCreate(GoodBase):
@@ -246,5 +252,26 @@ class DeliveryReturn(ID, DeliveryBase):
     status: str
     created_at: datetime
     last_changed: datetime
+    class Config:
+        from_attributes = True
+
+
+
+class SagaReturn(ID):
+    order_id: UUID | None = None
+    order_cancelled: bool
+    payment_id: UUID | None = None
+    payment_cancelled: bool
+    reservation_id: UUID | None = None
+    reservation_cancelled: bool
+    delivery_id: UUID | None = None
+    delivery_cancelled: bool
+    status: str
+    last_updated: datetime
+
+
+class OrderCreateStatusReturn(BaseModel):
+    id: UUID | None = None
+    error: str | None = None
     class Config:
         from_attributes = True

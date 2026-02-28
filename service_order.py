@@ -1,5 +1,5 @@
 from config import settings
-from models import OrderCreate, OrderUpdateEvent
+from models import OrderCreateOrderService, OrderUpdateEvent
 import httpx
 from decimal import Decimal
 from uuid import UUID
@@ -20,7 +20,7 @@ class OrderService(Service):
     ):
         url = self._build_endpoint_url(settings.order_url.create_endpoint)
 
-        new_order = OrderCreate(
+        new_order = OrderCreateOrderService(
             username = username,
             price    = str(price)
         )

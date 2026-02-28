@@ -103,11 +103,11 @@ spec:
           - name: WAREHOUSE_RESERVE_CANCEL_ENDPOINT
             value: {{ .Values.warehouse_url.reserve_cancel }}
           - name: DELIVERY_HOST
-            value: {{ .Values.warehouse_url.host }}
+            value: {{ .Values.delivery_url.host }}
           - name: DELIVERY_PATH
-            value: {{ .Values.warehouse_url.path }}
+            value: {{ .Values.delivery_url.path }}
           - name: DELIVERY_PORT
-            value: {{ .Values.warehouse_url.port | quote}}   
+            value: {{ .Values.delivery_url.port | quote}}   
           - name: DELIVERY_COURIER_CREATE_ENDPOINT
             value: {{ .Values.delivery_url.courier_create }}
           - name: DELIVERY_CREATE_ENDPOINT
@@ -116,6 +116,36 @@ spec:
             value: {{ .Values.delivery_url.delivery_get }}
           - name: DELIVERY_CANCEL_ENDPOINT
             value: {{ .Values.delivery_url.delivery_cancel }}
+          - name: DB_DRIVER_ASYNC 
+            valueFrom:
+              configMapKeyRef:
+                name: {{ include "client-api.configMapName" . | quote }}
+                key: DB_DRIVER_ASYNC        
+          - name: DB_HOST 
+            valueFrom:
+              configMapKeyRef:
+                name: {{ include "client-api.configMapName" . | quote }}
+                key: DB_HOST     
+          - name: DB_PORT 
+            valueFrom:
+              configMapKeyRef:
+                name: {{ include "client-api.configMapName" . | quote }}
+                key: DB_PORT                                             
+          - name: DB_USER
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.postgresql.auth.existingSecret }} 
+                key: username
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.postgresql.auth.existingSecret }}  
+                key: password
+          - name: DB_NAME
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.postgresql.auth.existingSecret }}
+                key: database              
           livenessProbe:
             httpGet:
               path: /health/

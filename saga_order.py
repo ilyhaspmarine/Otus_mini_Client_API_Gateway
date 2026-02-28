@@ -1,4 +1,4 @@
-from models import OrderCreate, OrderReturn
+from models import OrderCreate, OrderReturn, OrderCreateStatusReturn
 from service_billing import BillingService
 from service_order import OrderService
 from service_delivery import DeliveryService
@@ -33,7 +33,7 @@ class SagaOrder:
         new_saga = SagaOrder_DB(
             id = uuid.uuid4(),
             status = SagaStatus.UNFINISHED,
-            last_changed = datetime.utcnow()
+            last_updated = datetime.utcnow()
         )
 
         db.add(new_saga)
@@ -41,14 +41,23 @@ class SagaOrder:
         try:
             await db.commit()
             id = new_saga.id
-            new_saga = await db.execute(
+            result = await db.execute(
                 select(SagaOrder_DB)
                 .filter(SagaOrder_DB.id == id)
                 .with_for_update()
             )
+            new_saga = result.scalar_one_or_none()
         except IntegrityError:
+            await db.rollback()
             raise HTTPException(status_code = status.HTTP_500_INTERNAL_SERVER_ERROR, detail = 'Failed to create new order')
-        
+        except Exception as e:
+            print(f"=== EXCEPTION ===")
+            print(f"Type: {type(e).__name__}")
+            print(f"Message: {e}")
+            # Самое важное:
+            print(f"ORIG: {e.orig}") 
+            await db.rollback()
+            raise
         return new_saga
     
 
@@ -81,12 +90,6 @@ class SagaOrder:
             .filter(SagaOrder_DB.id == id)
             .with_for_update()
         )
-
-        try:
-            await db.commit()
-            await db.refresh(saga)
-        except IntegrityError:
-            raise HTTPException(status_code = status.HTTP_500_INTERNAL_SERVER_ERROR, detail = 'Failed to update saga')
         
         return saga
 
@@ -103,6 +106,8 @@ class SagaOrder:
         billing_service = BillingService()
         warehouse_service = WarehouseService()
         delivery_service = DeliveryService()
+
+        result = OrderCreateStatusReturn()
 
         try:
             # Если кто-то из сервисов недоступен - сага провалена и должна откатиться
@@ -128,19 +133,16 @@ class SagaOrder:
             new_saga = await self.__update_db_saga(db, new_saga)
 
         except Exception as e:
-            print(f'Ошибка при оформлении заказа: {e}')
-            status_response = await self.rollback_saga(new_saga.id, order_data, db)
-            raise
+            result.error = f'Ошибка при оформлении заказа: {e}'
+            print(result.error)
+            await self.rollback_saga(new_saga.id, order_data, db)
+            # raise
 
-        json = status_response.json()
-        return OrderReturn(
-            id = UUID(json.get('id')),
-            username = json.get('username'),
-            price = json.get('price'),
-            status = json.get('status'),
-            placed_at = json.get('placed_at'),
-            updated_at = json.get('updated_at')
-        )
+        if not new_saga.order_id is None:
+            result.id = new_saga.order_id
+
+        return result
+
 
 
     async def rollback_saga(
@@ -246,44 +248,3 @@ class SagaOrder:
                 else:
                     print(f"Все попытки отката {step_name} исчерпаны.")
                     raise
-
-
-    async def _attempt_rollback(
-        self,
-        saga_id: UUID,
-        order_data: OrderCreate,
-        db: AsyncSession  # Новая сессия
-    ):
-        order_service = OrderService()
-        billing_service = BillingService()
-        try:
-            result = await db.execute(
-                select(SagaOrder_DB)
-                .filter(SagaOrder_DB.id == saga_id)
-                .with_for_update()
-            )
-            saga = result.scalar_one_or_none()
-
-            if saga is None:
-                print('Не нашли сагу в БД...')
-
-
-
-
-
-
-            if self.__order_status_set:
-                # Как бе нечего откатывать, финальный шаг был
-                self.__order_status_set = False
-                pass
-            if self.__payment_id:
-                # Откат транзакции реализуется новой транзакцией с противоположным знаком
-                billing_response = await billing_service.storno_transaction(saga.payment_id)
-                self.__payment_id = None
-                pass
-            if self.__order_id:
-                status_response = await order_service.payment_failed(self.__order_id)
-                return status_response
-        except Exception as e:
-            print(f'Ошибка при откате саги: {e}')
-            raise

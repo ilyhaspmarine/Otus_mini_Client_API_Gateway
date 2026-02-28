@@ -18,7 +18,7 @@ comp = (
 
 url = urlunparse(comp)
 
-engine = create_async_engine(url)
+engine = create_async_engine(url, pool_pre_ping=True)
 AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 async def _get_db():

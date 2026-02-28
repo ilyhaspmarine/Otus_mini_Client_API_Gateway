@@ -19,7 +19,9 @@ from models import (
     StockCreate,
     StockReturn,
     CourierCreate,
-    CourierReturn
+    CourierReturn,
+    DeliveryReturn,
+    ReservationReturn
 )
 from service_auth import AuthService
 from service_profile import ProfileService
@@ -30,8 +32,12 @@ from service_delivery import DeliveryService
 from service_notification import NotificationService
 from saga import SagaRegister
 from saga_order import SagaOrder
+from saga_db_schema import SagaOrder as SagaOrderDB
 from uuid import UUID
 from typing import List
+from sqlalchemy import select, and_, func
+from sqlalchemy.future import select
+
 
 http_bearer = HTTPBearer()
 
@@ -296,3 +302,75 @@ async def courier_create(
     json = response.json()
 
     return CourierReturn.model_validate(json)
+
+
+async def get_all_order_sagas(
+    db: AsyncSession, 
+    skip: int = 0, 
+    limit: int = 10,
+):
+    result = await db.execute(
+        select(SagaOrderDB)
+        .offset(skip)
+        .limit(limit)
+    )
+
+    sagas = result.scalars().all()
+
+    return sagas
+
+
+async def get_saga_by_id(
+    saga_id: UUID,
+    db: AsyncSession
+):
+    result = await db.execute(
+        select(SagaOrderDB)
+        .filter(SagaOrderDB.id == saga_id)
+    )
+
+    saga = result.scalar_one_or_none()
+
+    if saga is None:
+        raise HTTPException(
+            status_code = status.HTTP_404_NOT_FOUND,
+            detail = 'Saga not found'    
+        )
+
+    return saga
+
+
+async def stock_get_by_good_id(
+    good_id: UUID
+):
+    warehouse_service = WarehouseService()
+
+    response = await warehouse_service.get_stock_by_good_id(good_id)
+
+    json = response.json()
+
+    return StockReturn.model_validate(json)
+
+
+async def delivery_get_by_order_id(
+    order_id: UUID
+):
+    delivery_service = DeliveryService()
+
+    response = await delivery_service.get_delivery(order_id)
+
+    json = response.json()
+
+    return DeliveryReturn.model_validate(json)
+
+
+async def reservation_get_by_order_id(
+    order_id: UUID
+):
+    warehouse_service =  WarehouseService()
+
+    response = WarehouseService.get_reservation_by_order_id(order_id)
+
+    json = response.json()
+
+    return ReservationReturn.model_validate(json)

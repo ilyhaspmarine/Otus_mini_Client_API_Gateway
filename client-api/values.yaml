@@ -71,7 +71,7 @@ notifications_url:
   port: "80"
 
 warehouse_url:
-  host: "warehouse-service.notif"
+  host: "warehouse-service.warehouse"
   path: None
   good_create: goods
   stock_get: stocks
@@ -82,7 +82,7 @@ warehouse_url:
   port: "80"
 
 delivery_url:
-  host: "delivery-service.notif"
+  host: "delivery-service.delivery"
   path: None
   courier_create: couriers
   delivery_create: deliveries
